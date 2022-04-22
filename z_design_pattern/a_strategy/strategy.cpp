@@ -1,84 +1,58 @@
 /*
- * - This code demonstrate the "Strategy pattern"
- * - In the code below, the travel strategy can be
- *   changed dynamically based on travelling time
- *   or budget.
- * - Code's intention just to show the pattern behavior
- *   the other issues like virtual destructor or
- *   de-allocating memory would not be considered
- */
+    When to use: When a object could perform an action in various ways.
+    Real-world example: 
+  1. A math exercise could have more than 1 solution.
+  Every solution is interchanable each other, and can be changed at runtime.
+  2. A game character can use many kinds of weapon, weapons are interchangable,
+  it means that the character could use any kind of weapon and perform the attack
+  action.
+    Key words:
+    - Context: Manages a reference to a concrete stategy, and interact with the strategy
+    with a public interface, provided by the Strategy.
+    - Strategy: Interface that provides a public interfaces to perform athe action.
+    How to implement;
 
+
+*/
 #include <iostream>
 
-class ITravelStrategy{
-public:
-  virtual void travel() = 0;
+struct Weapon{
+  virtual int hit() const = 0;
 };
 
-class CBikeTravel : public ITravelStrategy {
-public:
-  virtual void travel() override {
-    std::cout << "Travel by BIKE" << '\n';;
-  }
-};
-class CBusTravel : public ITravelStrategy {
-public:
-  virtual void travel() override {
-    std::cout << "Travel by BUS" << '\n';;
-  }
-};
-class CPlanTravel : public ITravelStrategy {
-public:
-  virtual void travel() override {
-    std::cout << "Travel by PLANE" << '\n';;
-  }
+struct Hand : public Weapon{
+  virtual int hit() const override { return 1; }
 };
 
-enum class TIME {
-  FAST,
-  NORMAL,
-  SLOW
-};
-enum class BUDGET {
-  HIGH,
-  NORMAL,
-  LOW
+struct RustySword : public Weapon{
+  virtual int hit() const override { return 2; }
 };
 
-class AdaptiveTraveller {
-  ITravelStrategy* travel_strategy_;
-  
-public:
-  AdaptiveTraveller(TIME time) {
-    if( time == TIME::FAST ) travel_strategy_ = new CPlanTravel();
-    if( time == TIME::NORMAL ) travel_strategy_ = new CBusTravel();
-    if( time == TIME::SLOW ) travel_strategy_ = new CBikeTravel();
+struct SharpSword : public Weapon{
+  virtual int hit() const override { return 4; }
+};
+
+struct Character{
+  Character(Weapon* w) : weapon(w){}
+  Weapon* weapon;
+  void setWeapon(Weapon* w){
+    weapon = w;
   }
-  
-  AdaptiveTraveller(BUDGET budget) {
-    if( budget == BUDGET::HIGH ) travel_strategy_ = new CPlanTravel();
-    if( budget == BUDGET::NORMAL ) travel_strategy_ = new CBusTravel();
-    if( budget == BUDGET::LOW ) travel_strategy_ = new CBikeTravel();
-  }
-  
-  void change_strategy(ITravelStrategy* new_strategy) {
-    delete travel_strategy_;
-    travel_strategy_ = new_strategy;
-  }
-  
-  void travel() {
-    travel_strategy_->travel();
+
+  void attack(int& HP){
+    HP -= weapon->hit();
   }
 };
 
-
-int main() {
-  AdaptiveTraveller traveller {TIME::FAST};
-  traveller.change_strategy(new CBusTravel{});
-  traveller.travel();
-  
-  AdaptiveTraveller low_budget_traveller {BUDGET::LOW};
-  low_budget_traveller.travel();
-  
-  return 0;
+int main(){
+  int HP = 100;
+  Character c{new Hand()};
+  c.attack(HP);
+  std::cout << "HP: " << HP << '\n';
+  c.setWeapon(new RustySword());
+  c.attack(HP);
+  std::cout << "HP: " << HP << '\n';
+  c.setWeapon(new SharpSword());
+  c.attack(HP);
+  std::cout << "HP: " << HP << '\n';
 }
